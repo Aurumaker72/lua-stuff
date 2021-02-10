@@ -18,13 +18,19 @@ local yvel --0x007D
 yvel = memory.readbyte(0x007D)
 local input
 local tries = 0
+client.invisibleemulation(true)
+emu.limitframerate(false)
 while (yvel~=6 or yvel~=3) and groundflag<=2 do --stupid code!!!!!!!!!
+	if emu.islagged() then
+		return -- skip anything if lag frame; cant receive inputs
+	end
 	emu.frameadvance()
-	ran=math.random(2) -- 1-2
-	if(ran~=1) then --if it's 1
-		input = {B=true, Y=true} --press B,Y
-	else --if not
-		input = {Y=true} -- press Y
+	
+	ran=math.random(1,4) -- 1-4
+	if(ran == 1) then
+		input = {B=true, Y=true}
+	elseif (ran == 2) then
+		input = {Y=true} 
 	end
 	joypad.set(input) -- lol shut up
 	groundflag = memory.readbyte(0x0077) --reread variables
@@ -32,6 +38,8 @@ while (yvel~=6 or yvel~=3) and groundflag<=2 do --stupid code!!!!!!!!!
 	yvel = memory.readbyte(0x007D)
 	if(xvel==0) then --if hit wall
 		if yvel==6 or yvel==3 then --if cling wall
+			emu.limitframerate(true)
+			client.invisibleemulation(false)
 			console.writeline("success")
 			client.pause()
 			break
