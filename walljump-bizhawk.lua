@@ -11,43 +11,71 @@
 
 savestate.save("bruteforce.st")
 local groundflag
-groundflag = memory.readbyte(0x0077) --0x0077 grounded variable
 local xvel --0x007B
-xvel = memory.readbyte(0x007B)
 local yvel --0x007D
+groundflag = memory.readbyte(0x0077) --0x0077 grounded variable
+
+xvel = memory.readbyte(0x007B)
+
 yvel = memory.readbyte(0x007D)
+
 local input
 local tries = 0
 client.invisibleemulation(true)
 emu.limitframerate(false)
-while (yvel~=6 or yvel~=3) and groundflag<=2 do --stupid code!!!!!!!!!
-	if emu.islagged() then
-		return -- skip anything if lag frame; cant receive inputs
-	end
-	emu.frameadvance()
-	
-	ran=math.random(1,4) -- 1-4
-	if(ran == 1) then
-		input = {B=true, Y=true}
-	elseif (ran == 2) then
-		input = {Y=true} 
-	end
-	joypad.set(input) -- lol shut up
+tryBy() -- enter loop
+
+function tryBY()
+	if (yvel~=6 or yvel~=3) and groundflag<=2 then
+		if emu.islagged() then
+			return -- skip anything if lag frame; cant receive inputs
+		end
+	emu.frameadvance() -- this isnt a good idea is it
+	input = {B=true, Y=true}
+	joypad.set(input) 
+	while true do
 	groundflag = memory.readbyte(0x0077) --reread variables
 	xvel = memory.readbyte(0x007B)
 	yvel = memory.readbyte(0x007D)
-	if(xvel==0) then --if hit wall
+	if(xvel==0) then
+		 
 		if yvel==6 or yvel==3 then --if cling wall
 			emu.limitframerate(true)
 			client.invisibleemulation(false)
 			console.writeline("success")
 			client.pause()
-			break
-
 		else --if not cling wall
-			tries = tries + 1
-			console.writeline(tostring(tries))
+			tryY()
 			savestate.load("bruteforce.st") --load state
+		end -- end cling wall check 
+	end -- end wall hit check
+end -- end loop
+end -- end big check
+end
+
+function tryY()
+	if (yvel~=6 or yvel~=3) and groundflag<=2 then
+		if emu.islagged() then
+			return -- skip anything if lag frame; cant receive inputs
 		end
-	end
+	emu.frameadvance() -- shit
+	input = {B=false, Y=true}
+	joypad.set(input) 
+	groundflag = memory.readbyte(0x0077) --reread variables
+	xvel = memory.readbyte(0x007B)
+	yvel = memory.readbyte(0x007D)
+	if(xvel==0) then
+		 
+		if yvel==6 or yvel==3 then --if cling wall
+			emu.limitframerate(true)
+			client.invisibleemulation(false)
+			console.writeline("success")
+			client.pause()
+		else --if not cling wall
+			tryBY()
+			savestate.load("bruteforce.st") --load state
+		end -- end cling wall check 
+	end -- end wall hit check
+end -- end loop
+end -- end big check
 end
